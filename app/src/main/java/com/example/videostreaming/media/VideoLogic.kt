@@ -65,7 +65,7 @@ class VideoLogic private constructor(
     fun joinAsync(): Future<Array<Channel>> {
         client = Client("https://cloud.liveswitch.io/", applicationId)
 
-        // Create a token (do this on the server to avoid exposing your shared secret).
+        // Create a token
         val token = Token.generateClientRegisterToken(
             applicationId,
             client.userId,
@@ -90,14 +90,12 @@ class VideoLogic private constructor(
                         )
                     )
 
-                    // Incrementally increase register backoff to prevent runaway process.
                     ManagedThread.sleep(reRegisterBackoff)
                     if (reRegisterBackoff < maxRegisterBackoff) {
                         reRegisterBackoff += reRegisterBackoff
                     }
                     client.register(token)
                         .then({ channels: Array<Channel> ->
-                            // Reset re-register backoff after successful registration.
                             reRegisterBackoff = 200
                             onClientRegistered(channels)
                         }
